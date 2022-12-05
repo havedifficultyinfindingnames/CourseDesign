@@ -1,3 +1,4 @@
 /MDK-ARM
 /build
-/.mxproject
+compile_commands.json
+*.exe

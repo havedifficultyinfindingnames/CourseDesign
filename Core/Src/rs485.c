@@ -1,67 +1,67 @@
 #include "rs485.h"
 #include "usart.h"
 #include "stdint.h"
-//UART_HandleTypeDef USART2_RS485Handler;  //USART2¾ä±ú(ÓÃÓÚRS485)
+//UART_HandleTypeDef USART2_RS485Handler;  //USART2å¥æŸ„(ç”¨äºRS485)
 
-#if EN_USART2_RX   		//Èç¹ûÊ¹ÄÜÁË½ÓÊÕ   	  
-//½ÓÊÕ»º´æÇø 	
-uint8_t RS485_RX_BUF[64];  	//½ÓÊÕ»º³å,×î´ó64¸ö×Ö½Ú.
-//½ÓÊÕµ½µÄÊı¾İ³¤¶È
+#if EN_USART2_RX   		//å¦‚æœä½¿èƒ½äº†æ¥æ”¶   	  
+//æ¥æ”¶ç¼“å­˜åŒº 	
+uint8_t RS485_RX_BUF[64];  	//æ¥æ”¶ç¼“å†²,æœ€å¤§64ä¸ªå­—èŠ‚.
+//æ¥æ”¶åˆ°çš„æ•°æ®é•¿åº¦
 uint8_t RS485_RX_CNT=0;  
 
 void USART2_IRQHandler(void)
 {
     uint8_t res;	  
-    if((__HAL_UART_GET_FLAG(&huart2,UART_FLAG_RXNE)!=RESET))  //½ÓÊÕÖĞ¶Ï
+    if((__HAL_UART_GET_FLAG(&huart2,UART_FLAG_RXNE)!=RESET))  //æ¥æ”¶ä¸­æ–­
 	{	 	
        HAL_UART_Receive(&huart2,&res,1,1000);
 		  if(RS485_RX_CNT<64)
 		  {
-		   	RS485_RX_BUF[RS485_RX_CNT]=res;		//¼ÇÂ¼½ÓÊÕµ½µÄÖµ
-			  RS485_RX_CNT++;						//½ÓÊÕÊı¾İÔö¼Ó1 
+		   	RS485_RX_BUF[RS485_RX_CNT]=res;		//è®°å½•æ¥æ”¶åˆ°çš„å€¼
+			  RS485_RX_CNT++;						//æ¥æ”¶æ•°æ®å¢åŠ 1 
 		  } 
 	} 
 }    
 #endif
 
-//³õÊ¼»¯IO ´®¿Ú2
-//bound:²¨ÌØÂÊ
+//åˆå§‹åŒ–IO ä¸²å£2
+//bound:æ³¢ç‰¹ç‡
 void RS485_Init(void)
 {
   #if EN_USART2_RX
-	__HAL_UART_ENABLE_IT(&huart2,UART_IT_RXNE);//¿ªÆô½ÓÊÕÖĞ¶Ï
-	HAL_NVIC_EnableIRQ(USART2_IRQn);				        //Ê¹ÄÜUSART2ÖĞ¶Ï
-	HAL_NVIC_SetPriority(USART2_IRQn,3,3);			        //ÇÀÕ¼ÓÅÏÈ¼¶3£¬×ÓÓÅÏÈ¼¶3
+	__HAL_UART_ENABLE_IT(&huart2,UART_IT_RXNE);//å¼€å¯æ¥æ”¶ä¸­æ–­
+	HAL_NVIC_EnableIRQ(USART2_IRQn);				        //ä½¿èƒ½USART2ä¸­æ–­
+	HAL_NVIC_SetPriority(USART2_IRQn,3,3);			        //æŠ¢å ä¼˜å…ˆçº§3ï¼Œå­ä¼˜å…ˆçº§3
   #endif	
-	RS485_RX_ENABLE();											//Ä¬ÈÏÎª½ÓÊÕÄ£Ê½		
+	RS485_RX_ENABLE();											//é»˜è®¤ä¸ºæ¥æ”¶æ¨¡å¼		
 }
 
-//RS485·¢ËÍlen¸ö×Ö½Ú.
-//buf:·¢ËÍÇøÊ×µØÖ·
-//len:·¢ËÍµÄ×Ö½ÚÊı(ÎªÁËºÍ±¾´úÂëµÄ½ÓÊÕÆ¥Åä,ÕâÀï½¨Òé²»Òª³¬¹ı64¸ö×Ö½Ú)
+//RS485å‘é€lenä¸ªå­—èŠ‚.
+//buf:å‘é€åŒºé¦–åœ°å€
+//len:å‘é€çš„å­—èŠ‚æ•°(ä¸ºäº†å’Œæœ¬ä»£ç çš„æ¥æ”¶åŒ¹é…,è¿™é‡Œå»ºè®®ä¸è¦è¶…è¿‡64ä¸ªå­—èŠ‚)
 void RS485_Send_Data(uint8_t *buf,uint8_t len)
 {
-  RS485_TX_ENABLE()			//ÉèÖÃÎª·¢ËÍÄ£Ê½	
-	HAL_UART_Transmit(&huart2,buf,len,1000);//´®¿Ú2·¢ËÍÊı¾İ
+  RS485_TX_ENABLE()			//è®¾ç½®ä¸ºå‘é€æ¨¡å¼	
+	HAL_UART_Transmit(&huart2,buf,len,1000);//ä¸²å£2å‘é€æ•°æ®
 	RS485_RX_CNT=0;	  
-	RS485_RX_ENABLE();			//ÉèÖÃÎª½ÓÊÕÄ£Ê½	
+	RS485_RX_ENABLE();			//è®¾ç½®ä¸ºæ¥æ”¶æ¨¡å¼	
 }
-//RS485²éÑ¯½ÓÊÕµ½µÄÊı¾İ
-//buf:½ÓÊÕ»º´æÊ×µØÖ·
-//len:¶Áµ½µÄÊı¾İ³¤¶È
+//RS485æŸ¥è¯¢æ¥æ”¶åˆ°çš„æ•°æ®
+//buf:æ¥æ”¶ç¼“å­˜é¦–åœ°å€
+//len:è¯»åˆ°çš„æ•°æ®é•¿åº¦
 void RS485_Receive_Data(uint8_t *buf,uint8_t *len)
 {
 	uint8_t rxlen=RS485_RX_CNT;
 	uint8_t i=0;
-	*len=0;				//Ä¬ÈÏÎª0
-	HAL_Delay(10);		//µÈ´ı10ms,Á¬Ğø³¬¹ı10msÃ»ÓĞ½ÓÊÕµ½Ò»¸öÊı¾İ,ÔòÈÏÎª½ÓÊÕ½áÊø
-	if(rxlen==RS485_RX_CNT&&rxlen)//½ÓÊÕµ½ÁËÊı¾İ,ÇÒ½ÓÊÕÍê³ÉÁË
+	*len=0;				//é»˜è®¤ä¸º0
+	HAL_Delay(10);		//ç­‰å¾…10ms,è¿ç»­è¶…è¿‡10msæ²¡æœ‰æ¥æ”¶åˆ°ä¸€ä¸ªæ•°æ®,åˆ™è®¤ä¸ºæ¥æ”¶ç»“æŸ
+	if(rxlen==RS485_RX_CNT&&rxlen)//æ¥æ”¶åˆ°äº†æ•°æ®,ä¸”æ¥æ”¶å®Œæˆäº†
 	{
 		for(i=0;i<rxlen;i++)
 		{
 			buf[i]=RS485_RX_BUF[i];	
 		}		
-		*len=RS485_RX_CNT;	//¼ÇÂ¼±¾´ÎÊı¾İ³¤¶È
-		RS485_RX_CNT=0;		//ÇåÁã
+		*len=RS485_RX_CNT;	//è®°å½•æœ¬æ¬¡æ•°æ®é•¿åº¦
+		RS485_RX_CNT=0;		//æ¸…é›¶
 	}
 } 
