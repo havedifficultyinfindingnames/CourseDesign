@@ -14,6 +14,7 @@ HAL_StatusTypeDef MotorSignal_Init(MotorSignal_TypeDef *motorSignal, uint16_t ma
 		motorSignal->minSpeed = minSpeed;
 		motorSignal->maxSpeed = maxSpeed;
 		motorSignal->speedInterval = interval;
+		motorSignal->modified = SIGNAL_UNMODIFIED;
 		return HAL_OK;
 	}
 }

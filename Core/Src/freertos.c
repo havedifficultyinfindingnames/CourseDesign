@@ -15,7 +15,6 @@
   *
   ******************************************************************************
   */
-#include "lcd.h"
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -26,8 +25,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "lcd.h"
 #include "bluetooth.h"
 #include "ultrasonic.h"
+#include "rs485.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,8 +49,11 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 
+const uint16_t unsafeDistance = 500;	//distance car should stop gradually
+const uint16_t urgentDistance = 50;		//diatance car should brake 
+
 extern TIM_HandleTypeDef htim3;			//ultrasonic pwm
-extern TIM_HandleTypeDef htim4;
+extern TIM_HandleTypeDef htim4;		
 extern TIM_HandleTypeDef htim8;			//ultrasonic capture
 
 extern UART_HandleTypeDef huart2;		//485
@@ -59,6 +63,7 @@ USGROUP_HandleTypeDef husGroup;
 MotorSignal_TypeDef signal;
 uint8_t btBuffer[BT_COMMAND_LENGTH];
 uint8_t btReveived;
+uint8_t btConnected;
 
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
@@ -175,7 +180,8 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		//HAL_GPIO_TogglePin(BT_WKUP_GPIO_Port,BT_WKUP_Pin);
+    osDelay(100);
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -190,9 +196,19 @@ void StartDefaultTask(void *argument)
 void BTTaskRoutine(void *argument)
 {
   /* USER CODE BEGIN BTTaskRoutine */
+	MotorSignal_Init(&signal,50,0,10);
+	/* BT recevie start */
+	HAL_UART_Receive_IT(&huart3, btBuffer, BT_COMMAND_LENGTH);
   /* Infinite loop */
   for(;;)
   {
+		btConnected = HAL_GPIO_ReadPin(BT_STA_GPIO_Port, BT_STA_Pin);
+		if(btReveived == BT_RECEIVED)
+		{
+			BT_ProcessMessage(btBuffer, &signal);
+			btReveived = BT_WAIT;
+			HAL_UART_Receive_IT(&huart3, btBuffer, BT_COMMAND_LENGTH);
+		}
     osDelay(1);
   }
   /* USER CODE END BTTaskRoutine */
@@ -211,6 +227,26 @@ void ControlTaskRoutine(void *argument)
   /* Infinite loop */
   for(;;)
   {
+		if(BT_CONNECTED == btConnected)
+		{
+			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
+		}
+		else
+		{
+			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET );
+		}
+		if(SIGNAL_MODIFIED == signal.modified)
+		{
+			if(signal.speed > 25)
+			{
+				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
+			}
+			else
+			{
+				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
+			}
+			signal.modified = SIGNAL_UNMODIFIED;
+		}
     osDelay(1);
   }
   /* USER CODE END ControlTaskRoutine */
@@ -226,6 +262,7 @@ void ControlTaskRoutine(void *argument)
 void USTaskRoutine(void *argument)
 {
   /* USER CODE BEGIN USTaskRoutine */
+	USGROUP_Init(&husGroup, &htim8);
   /* Infinite loop */
   for(;;)
   {
@@ -261,7 +298,10 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart)
 {
-	
+	if(huart->Instance == USART3)	//bluetooth
+	{
+		btReveived = BT_RECEIVED;
+	}
 }
 /* USER CODE END Application */
 

@@ -1,6 +1,22 @@
+/**
+  ******************************************************************************
+  * @file           : MotorSignal.h
+	* @author					: YuYang777
+  * @brief          : Header for MotorSignal.c file.
+  *                   This file contains the common defines of enums, structures and 
+	*										functions for communication between the bluetooth module and the
+	*										motor controller.
+  ******************************************************************************
+  */
+
+/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MOTORSIGNAL_H
 #define __MOTORSIGNAL_H
 
+#define SIGNAL_MODIFIED 1
+#define SIGNAL_UNMODIFIED 0
+
+/* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
 typedef enum
@@ -25,6 +41,7 @@ typedef struct
 	uint16_t minSpeed;
 	uint16_t maxSpeed;
 	uint16_t speedInterval;
+	uint8_t modified;
 } MotorSignal_TypeDef;
 
 HAL_StatusTypeDef MotorSignal_Init(MotorSignal_TypeDef *motorSignal, uint16_t maxSpeed, uint16_t minSpeed, uint16_t interval);

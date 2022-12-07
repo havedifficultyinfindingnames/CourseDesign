@@ -51,7 +51,7 @@ HAL_StatusTypeDef USGROUP_Init(USGROUP_HandleTypeDef *husg, TIM_HandleTypeDef *h
 
 void US_ProcessCapture(US_HandleTypeDef *hus, TIM_HandleTypeDef *htim)
 {
-	if(hus->htim->Instance == htim->Instance && (hus->Channel & htim->Channel) != 0)
+	if(NULL != hus && hus->htim->Instance == htim->Instance && (hus->Channel & htim->Channel) != 0)
 	{
 		HAL_TIM_IC_Stop_IT(htim,hus->Channel);
 		if(hus->Instance.capIndex == 0)
@@ -80,7 +80,7 @@ void US_ProcessCapture(US_HandleTypeDef *hus, TIM_HandleTypeDef *htim)
 
 void USGROUP_ProcessCapture(USGROUP_HandleTypeDef *husg, TIM_HandleTypeDef *htim)
 {
-	if(htim->Instance != husg->htim->Instance)
+	if(NULL == husg || htim->Instance != husg->htim->Instance)
 	{
 		return;
 	}
@@ -92,7 +92,7 @@ void USGROUP_ProcessCapture(USGROUP_HandleTypeDef *husg, TIM_HandleTypeDef *htim
 
 uint16_t US_GetDistance(USGROUP_HandleTypeDef *husg, US_DIRECTION direction)
 {
-	if(direction > 3)
+	if(NULL == husg || direction > 3)
 	{
 		return 5000;
 	}
