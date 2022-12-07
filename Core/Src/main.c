@@ -80,6 +80,7 @@ int main(void)
 
   /* USER CODE BEGIN Init */
   LCD_init();
+  LCD_clear(COLOR_RED);
   /* USER CODE END Init */
 
   /* Configure the system clock */
