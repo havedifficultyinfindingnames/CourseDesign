@@ -207,9 +207,8 @@ void BTTaskRoutine(void *argument)
 		btConnected = HAL_GPIO_ReadPin(BT_STA_GPIO_Port, BT_STA_Pin);
 		if(btReceived == BT_RECEIVED)
 		{
-			BT_ProcessMessage(btBuffer, &signal);
 			btReceived = BT_WAIT;
-			HAL_UART_Receive_IT(&huart3, (uint8_t *)btBuffer, BT_COMMAND_LENGTH);
+			BT_ProcessMessage(btBuffer, &signal);
 		}
     osDelay(1);
   }
@@ -284,11 +283,11 @@ void LCDTaskRountine(void *argument)
 {
   /* USER CODE BEGIN LCDTaskRountine */
   /* Infinite loop */
-  static uint16_t cur_bg_color = 0;
+  //static uint16_t cur_bg_color = 0;
   for(;;)
   {
-    LCD_display_char(20, 20, '0', FONT_VERY_LARGE, false);
-    LCD_clear(++cur_bg_color);
+    //LCD_display_char(20, 20, '0', FONT_VERY_LARGE, false);
+    //LCD_clear(++cur_bg_color);
     osDelay(1);
   }
   /* USER CODE END LCDTaskRountine */
@@ -306,6 +305,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart)
 	if(huart->Instance == USART3)	//bluetooth
 	{
 		btReceived = BT_RECEIVED;
+		HAL_UART_Receive_IT(&huart3, (uint8_t *)btBuffer, BT_COMMAND_LENGTH);
 	}
 }
 /* USER CODE END Application */
