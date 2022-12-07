@@ -29,6 +29,8 @@
 #include "bluetooth.h"
 #include "ultrasonic.h"
 #include "rs485.h"
+#include "stm32f4xx_hal_uart.h"
+#include <stdint.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,7 +64,7 @@ extern UART_HandleTypeDef huart3;		//BT
 USGROUP_HandleTypeDef husGroup;
 MotorSignal_TypeDef signal;
 uint8_t btBuffer[BT_COMMAND_LENGTH];
-uint8_t btReveived;
+extern uint8_t btReceived;
 uint8_t btConnected;
 
 /* USER CODE END Variables */
@@ -181,7 +183,7 @@ void StartDefaultTask(void *argument)
   for(;;)
   {
 		//HAL_GPIO_TogglePin(BT_WKUP_GPIO_Port,BT_WKUP_Pin);
-    osDelay(100);
+    osDelay(1);
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -198,16 +200,16 @@ void BTTaskRoutine(void *argument)
   /* USER CODE BEGIN BTTaskRoutine */
 	MotorSignal_Init(&signal,50,0,10);
 	/* BT recevie start */
-	HAL_UART_Receive_IT(&huart3, btBuffer, BT_COMMAND_LENGTH);
+	HAL_UART_Receive_IT(&huart3, (uint8_t *)btBuffer, BT_COMMAND_LENGTH);
   /* Infinite loop */
   for(;;)
   {
 		btConnected = HAL_GPIO_ReadPin(BT_STA_GPIO_Port, BT_STA_Pin);
-		if(btReveived == BT_RECEIVED)
+		if(btReceived == BT_RECEIVED)
 		{
 			BT_ProcessMessage(btBuffer, &signal);
-			btReveived = BT_WAIT;
-			HAL_UART_Receive_IT(&huart3, btBuffer, BT_COMMAND_LENGTH);
+			btReceived = BT_WAIT;
+			HAL_UART_Receive_IT(&huart3, (uint8_t *)btBuffer, BT_COMMAND_LENGTH);
 		}
     osDelay(1);
   }
@@ -282,8 +284,11 @@ void LCDTaskRountine(void *argument)
 {
   /* USER CODE BEGIN LCDTaskRountine */
   /* Infinite loop */
+  static uint16_t cur_bg_color = 0;
   for(;;)
   {
+    LCD_display_char(20, 20, '0', FONT_VERY_LARGE, false);
+    LCD_clear(++cur_bg_color);
     osDelay(1);
   }
   /* USER CODE END LCDTaskRountine */
@@ -300,7 +305,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart)
 {
 	if(huart->Instance == USART3)	//bluetooth
 	{
-		btReveived = BT_RECEIVED;
+		btReceived = BT_RECEIVED;
 	}
 }
 /* USER CODE END Application */

@@ -48,7 +48,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+uint8_t btReceived;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/

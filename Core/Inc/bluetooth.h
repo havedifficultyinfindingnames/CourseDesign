@@ -22,7 +22,7 @@
 #define BT_DISCONNECTED GPIO_PIN_SET
 
 /* Length of the buffer used by the bluetooth module -------------------------*/
-#define BT_COMMAND_LENGTH 2
+#define BT_COMMAND_LENGTH 1
 
 void BT_ProcessMessage(uint8_t *message, MotorSignal_TypeDef *signal);
 
