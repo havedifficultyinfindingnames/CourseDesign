@@ -28,6 +28,7 @@
 /* USER CODE BEGIN Includes */
 #include "bluetooth.h"
 #include "ultrasonic.h"
+#include <stdint.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -245,8 +246,11 @@ void LCDTaskRountine(void *argument)
 {
   /* USER CODE BEGIN LCDTaskRountine */
   /* Infinite loop */
+  static uint16_t cur_bg_color = 0;
   for(;;)
   {
+    LCD_display_char(20, 20, '0', FONT_VERY_LARGE, false);
+    LCD_clear(++cur_bg_color);
     osDelay(1);
   }
   /* USER CODE END LCDTaskRountine */

@@ -601,6 +601,11 @@ void LCD_scan_dir(direction_t direction) {
 		case U2D_R2L: direction = L2R_U2D; break;
 		case D2U_L2R: direction = R2L_D2U; break;
 		case D2U_R2L: direction = R2L_U2D; break;
+#ifdef __has_builtin
+#if __has_builtin(__builtin_unreachable)
+		default: __builtin_unreachable();
+#endif
+#endif
 		}
 	}
 	uint8_t regval = direction << 5;
@@ -635,40 +640,48 @@ void LCD_clear(uint16_t color) {
 	}
 }
 void LCD_draw_point(uint16_t x, uint16_t y, uint16_t color) {
-	LCD_write(0x2a00, x >> 8);
-	LCD_write(0x2a01, x & 0xff);
-	LCD_write(0x2b00, y >> 8);
-	LCD_write(0x2b01, y & 0xff);
+	LCD_set_cursor(x, y);
 	LCD_write(0x2c00, color);
 }
 #include "font.h"
-void LCD_display_char(uint16_t x, uint16_t y, uint8_t character, font_size_t font_size, bool mode) {
-	if (font_size >= 4) Error_Handler();
+void LCD_display_char(uint16_t x, uint16_t y, uint8_t character, font_size_t font_size, bool transparent) {
 	character -= ' ';
 	uint8_t width;
+	uint8_t size;
 	switch (font_size) {
-	case FONT_SMALL: width = 12; break;
-	case FONT_MEDIUM: width = 16; break;
-	case FONT_LARGE: width = 36; break;
-	case FONT_VERY_LARGE: width = 128; break;
+	case FONT_SMALL: width = 12; size = 12; break;
+	case FONT_MEDIUM: width = 16; size = 16; break;
+	case FONT_LARGE: width = 36; size = 24; break;
+	case FONT_VERY_LARGE: width = 128; size = 32; break;
+#ifdef __has_builtin
+#if __has_builtin(__builtin_unreachable)
+	default: __builtin_unreachable();
+#endif
+#endif
 	}
 	for (int i = 0; i < width; ++i) {
 		uint8_t temp;
 		switch (font_size) {
-		case 0: temp = asc2_1206[character][i]; break;
-		case 1: temp = asc2_1608[character][i]; break;
-		case 2: temp = asc2_2412[character][i]; break;
-		case 3: temp = asc2_3216[character][i]; break;
+		case FONT_SMALL: temp = asc2_1206[character][i]; break;
+		case FONT_MEDIUM: temp = asc2_1608[character][i]; break;
+		case FONT_LARGE: temp = asc2_2412[character][i]; break;
+		case FONT_VERY_LARGE: temp = asc2_3216[character][i]; break;
+#ifdef __has_builtin
+#if __has_builtin(__builtin_unreachable)
+		default: __builtin_unreachable();
+#endif
+#endif
 		}
-		// meaningless loop I dont know why
+		uint16_t y0 = y;
 		for (int j = 0; j < 8; ++j) {
 			if (temp & 0x80) LCD_draw_point(x, y, 0x0000);
-			else if (mode == 0) LCD_draw_point(x, y, 0xffff);
+			else if (transparent == false) LCD_draw_point(x, y, 0xffff);
 			temp <<= 1;
 			++y;
-			uint16_t const screen_width[] = {480, 800};
-			if (y >= screen_width[(uint8_t)(LCD_settings.direction)])
-				return;
+			if (y - y0 == size) {
+				y = y0;
+				++x;
+			}
 		}
 	}
 }

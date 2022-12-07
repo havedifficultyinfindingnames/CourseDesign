@@ -15,19 +15,6 @@ typedef struct {
 } LCD_settings_t;
 extern LCD_settings_t LCD_settings;
 
-void LCD_set_register(uint16_t value);
-void LCD_set_ram(uint16_t value);
-uint16_t LCD_read_register(void);
-uint16_t LCD_read_ram(void);
-void LCD_write(uint16_t reg, uint16_t value);
-uint16_t LCD_read(uint16_t reg);
-
-void LCD_init(void);
-
-void LCD_display_dir(bool direction);
-void LCD_set_cursor(uint16_t x, uint16_t y);
-void LCD_clear(uint16_t color);
-
 typedef enum {
     L2R_U2D = 0,
     L2R_D2U = 4,
@@ -58,6 +45,22 @@ typedef enum {
     FONT_LARGE,
     FONT_VERY_LARGE,
 } font_size_t;
+
+void LCD_set_register(uint16_t value);
+void LCD_set_ram(uint16_t value);
+uint16_t LCD_read_register(void);
+uint16_t LCD_read_ram(void);
+void LCD_write(uint16_t reg, uint16_t value);
+uint16_t LCD_read(uint16_t reg);
+
+void LCD_init(void);
+
+void LCD_display_dir(bool direction);
+void LCD_set_cursor(uint16_t x, uint16_t y);
+void LCD_clear(uint16_t color);
+
+void LCD_draw_point(uint16_t x, uint16_t y, uint16_t color);
+void LCD_display_char(uint16_t x, uint16_t y, uint8_t character, font_size_t font_size, bool transparent);
 
 #ifdef __cplusplus
 }
