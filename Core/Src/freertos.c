@@ -54,6 +54,9 @@
 const uint16_t unsafeDistance = 500;	//distance car should stop gradually
 const uint16_t urgentDistance = 50;		//diatance car should brake 
 
+uint8_t us_unsafe;
+uint8_t us_urgent;
+
 extern TIM_HandleTypeDef htim3;			//ultrasonic pwm
 extern TIM_HandleTypeDef htim4;		
 extern TIM_HandleTypeDef htim8;			//ultrasonic capture
@@ -228,6 +231,8 @@ void ControlTaskRoutine(void *argument)
   /* Infinite loop */
   for(;;)
   {
+		/* BT Connection Test */
+		/*
 		if(BT_CONNECTED == btConnected)
 		{
 			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
@@ -236,8 +241,11 @@ void ControlTaskRoutine(void *argument)
 		{
 			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET );
 		}
+		*/
 		if(SIGNAL_MODIFIED == signal.modified)
 		{
+			/* BT Command Test */
+			/*
 			if(signal.speed > 25)
 			{
 				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
@@ -246,6 +254,7 @@ void ControlTaskRoutine(void *argument)
 			{
 				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
 			}
+			*/
 			signal.modified = SIGNAL_UNMODIFIED;
 		}
     osDelay(1);
@@ -264,9 +273,54 @@ void USTaskRoutine(void *argument)
 {
   /* USER CODE BEGIN USTaskRoutine */
 	USGROUP_Init(&husGroup, &htim8);
+	US_DIRECTION dir1 = US_DIR_FORWARD_LEFT;
+	US_DIRECTION dir2 = US_DIR_FORWARD_RIGHT;
+	HAL_TIM_IC_Start_IT(&htim8,TIM_CHANNEL_1);
+	HAL_TIM_IC_Start_IT(&htim8,TIM_CHANNEL_2);
+	HAL_TIM_IC_Start_IT(&htim8,TIM_CHANNEL_3);
+	HAL_TIM_IC_Start_IT(&htim8,TIM_CHANNEL_4);
+	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_2);
   /* Infinite loop */
   for(;;)
   {
+		if(signal.movingControl == MOTOR_MOVE_FORWARD)
+		{
+			dir1 = US_DIR_FORWARD_LEFT;
+			dir2 = US_DIR_FORWARD_RIGHT;
+		}
+		else if(signal.movingControl == MOTOR_MOVE_REVERSE)
+		{
+			dir1 = US_DIR_BACK_LEFT;
+			dir2 = US_DIR_BACK_RIGHT;
+		}
+		else
+		{
+			dir1 = US_DIR_FORWARD_LEFT;
+			dir2 = US_DIR_FORWARD_RIGHT;
+			//us_unsafe = 0;
+			//us_urgent = 0;
+			//osDelay(1);
+			//continue;
+		}
+		uint16_t dis1 = US_GetDistance(&husGroup, dir1);
+		uint16_t dis2 = US_GetDistance(&husGroup, dir2);
+		if(dis1 <= unsafeDistance || dis2 <= unsafeDistance)
+		{
+			us_unsafe = 1;
+		}
+		else
+		{
+			us_unsafe = 0;
+		}
+		if(dis1 <= urgentDistance || dis2 <= urgentDistance)
+		{
+			us_urgent = 1;
+		}
+		else
+		{
+			us_urgent = 0;
+		}
     osDelay(1);
   }
   /* USER CODE END USTaskRoutine */
@@ -286,6 +340,22 @@ void LCDTaskRountine(void *argument)
   //static uint16_t cur_bg_color = 0;
   for(;;)
   {
+		if(us_unsafe == 1)
+		{
+			HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
+		}
+		else
+		{
+			HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
+		}
+		if(us_urgent == 1)
+		{
+			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
+		}
+		else
+		{
+			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
+		}
     //LCD_display_char(20, 20, '0', FONT_VERY_LARGE, false);
     //LCD_clear(++cur_bg_color);
     osDelay(1);
