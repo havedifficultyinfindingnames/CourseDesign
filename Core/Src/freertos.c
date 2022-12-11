@@ -15,7 +15,6 @@
   *
   ******************************************************************************
   */
-#include "lcd.h"
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -26,9 +25,14 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "lcd.h"
 #include "bluetooth.h"
 #include "ultrasonic.h"
 #include "rs485.h"
+
+#include "stm32f4xx_hal_uart.h"
+#include <stdint.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,8 +53,13 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 
+const uint16_t unsafeDistance = 500;	//distance car should stop gradually
+const uint16_t urgentDistance = 50;		//diatance car should brake 
+
 extern TIM_HandleTypeDef htim3;			//ultrasonic pwm
+
 extern TIM_HandleTypeDef htim4;     //转向
+
 extern TIM_HandleTypeDef htim8;			//ultrasonic capture
 
 extern UART_HandleTypeDef huart2;		//485
@@ -59,7 +68,8 @@ extern UART_HandleTypeDef huart3;		//BT
 USGROUP_HandleTypeDef husGroup;
 MotorSignal_TypeDef signal;
 uint8_t btBuffer[BT_COMMAND_LENGTH];
-uint8_t btReveived;
+extern uint8_t btReceived;
+uint8_t btConnected;
 
 uint8_t emerg_stop[] = {0x01,0x06,0x00,0x20,0x00,0x01,0x49,0xC0};  //紧急停止
 uint8_t nor_stop[] = {0x01,0x06,0x00,0x20,0x00,0x00,0x88,0x00};    //正常停止
@@ -215,6 +225,7 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
+		//HAL_GPIO_TogglePin(BT_WKUP_GPIO_Port,BT_WKUP_Pin);
     osDelay(1);
   }
   /* USER CODE END StartDefaultTask */
@@ -230,9 +241,19 @@ void StartDefaultTask(void *argument)
 void BTTaskRoutine(void *argument)
 {
   /* USER CODE BEGIN BTTaskRoutine */
+	MotorSignal_Init(&signal,50,0,10);
+	/* BT recevie start */
+	HAL_UART_Receive_IT(&huart3, (uint8_t *)btBuffer, BT_COMMAND_LENGTH);
   /* Infinite loop */
   for(;;)
   {
+		btConnected = HAL_GPIO_ReadPin(BT_STA_GPIO_Port, BT_STA_Pin);
+		if(btReceived == BT_RECEIVED)
+		{
+			BT_ProcessMessage(btBuffer, &signal);
+			btReceived = BT_WAIT;
+			HAL_UART_Receive_IT(&huart3, (uint8_t *)btBuffer, BT_COMMAND_LENGTH);
+		}
     osDelay(1);
   }
   /* USER CODE END BTTaskRoutine */
@@ -251,53 +272,78 @@ void ControlTaskRoutine(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
-		
-		switch(signal.turningControl)
+		if(signal.modified == 1)
 		{
-			case 0:
-			{
-				HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_1);
-			  HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_2);
-			  break;
+				if(BT_CONNECTED == btConnected)
+				{
+					HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
+				}
+				else
+				{
+					HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET );
+				}
+				if(SIGNAL_MODIFIED == signal.modified)
+				{
+					if(signal.speed > 25)
+					{
+						HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
+					}
+					else
+					{
+						HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
+					}
+					signal.modified = SIGNAL_UNMODIFIED;
+				}
+				osDelay(1);
+				
+				switch(signal.turningControl)
+				{
+					case 0:
+					{
+						HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_1);
+						HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_2);
+						break;
+					}
+					case 1:
+					{
+						HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_1);    //左转
+						break;
+					}
+					case 2:
+					{
+						HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_2);    //右转
+						break;
+					}
+					default:
+					{
+						HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_1);
+						HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_2);
+					}
+				}
+				
+				switch(signal.movingControl)
+				{
+				case 0:
+					{ 
+						RS485_Send_Data(nor_stop,8);       //正常停止
+						break;
+					}
+					case 1:
+					{
+						RS485_Send_Data(speed_forward[signal.speed],13);  //前进
+						break;
+					}
+					case 2:
+					{
+						RS485_Send_Data(speed_reveres[signal.speed],13);  //后退
+						break;
+					}
+					default:
+						RS485_Send_Data(emerg_stop,8);        //紧急停止
+				}
 			}
-			case 1:
-			{
-				HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_1);    //左转
-				break;
-			}
-			case 2:
-			{
-				HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_2);    //右转
-				break;
-			}
-			default:
-			{
-				HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_1);
-			  HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_2);
-			}
-		}
-		
-		switch(signal.movingControl)
-		{
-		case 0:
-			{ 
-				RS485_Send_Data(nor_stop,8);       //正常停止
-			  break;
-			}
-			case 1:
-			{
-				RS485_Send_Data(speed_forward[signal.speed],13);  //前进
-				break;
-			}
-			case 2:
-			{
-				RS485_Send_Data(speed_reveres[signal.speed],13);  //后退
-				break;
-			}
-			default:
-			  RS485_Send_Data(emerg_stop,8);        //紧急停止
-		}
+		else
+			RS485_Send_Data(emerg_stop,8);     //蓝牙断开，小车停止
   }
   /* USER CODE END ControlTaskRoutine */
 }
@@ -312,6 +358,7 @@ void ControlTaskRoutine(void *argument)
 void USTaskRoutine(void *argument)
 {
   /* USER CODE BEGIN USTaskRoutine */
+	USGROUP_Init(&husGroup, &htim8);
   /* Infinite loop */
   for(;;)
   {
@@ -331,8 +378,11 @@ void LCDTaskRountine(void *argument)
 {
   /* USER CODE BEGIN LCDTaskRountine */
   /* Infinite loop */
+  static uint16_t cur_bg_color = 0;
   for(;;)
   {
+    LCD_display_char(20, 20, '0', FONT_VERY_LARGE, false);
+    LCD_clear(++cur_bg_color);
     osDelay(1);
   }
   /* USER CODE END LCDTaskRountine */
@@ -347,7 +397,10 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart)
 {
-	
+	if(huart->Instance == USART3)	//bluetooth
+	{
+		btReceived = BT_RECEIVED;
+	}
 }
 /* USER CODE END Application */
 

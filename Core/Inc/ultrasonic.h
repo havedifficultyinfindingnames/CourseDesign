@@ -4,16 +4,15 @@
 	* @author					: YuYang777
   * @brief          : Header for ultrasonic.c file.
   *                   This file contains the common defines of stucture and 
-	*										functions of the ultrasonic modules.
+	*										functions of the ultrasonic module.
   ******************************************************************************
   */
-
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __ULTRASONIC_H
 #define __ULTRASONIC_H
 
-
+/* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
 /**

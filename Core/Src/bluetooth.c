@@ -52,4 +52,5 @@ void BT_ProcessMessage(uint8_t *message, MotorSignal_TypeDef *signal)
 		default:
 			break;
 	}
+	signal->modified = SIGNAL_MODIFIED;
 }

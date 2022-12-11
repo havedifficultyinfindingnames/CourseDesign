@@ -48,7 +48,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+uint8_t btReceived;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -80,6 +80,7 @@ int main(void)
 
   /* USER CODE BEGIN Init */
   LCD_init();
+  LCD_clear(COLOR_RED);
   /* USER CODE END Init */
 
   /* Configure the system clock */

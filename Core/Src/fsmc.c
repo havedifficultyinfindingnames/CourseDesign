@@ -95,27 +95,10 @@ static void HAL_FSMC_MspInit(void){
   __HAL_RCC_FSMC_CLK_ENABLE();
 
   /** FSMC GPIO Configuration
-  PF0   ------> FSMC_A0
-  PF1   ------> FSMC_A1
-  PF2   ------> FSMC_A2
-  PF3   ------> FSMC_A3
-  PF4   ------> FSMC_A4
-  PF5   ------> FSMC_A5
-  PF12   ------> FSMC_A6
   PD4   ------> FSMC_NOE
   PD5   ------> FSMC_NWE
   PG12   ------> FSMC_NE4
   */
-  /* GPIO_InitStruct */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
-                          |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_12;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF12_FSMC;
-
-  HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
-
   /* GPIO_InitStruct */
   GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -163,20 +146,10 @@ static void HAL_FSMC_MspDeInit(void){
   __HAL_RCC_FSMC_CLK_DISABLE();
 
   /** FSMC GPIO Configuration
-  PF0   ------> FSMC_A0
-  PF1   ------> FSMC_A1
-  PF2   ------> FSMC_A2
-  PF3   ------> FSMC_A3
-  PF4   ------> FSMC_A4
-  PF5   ------> FSMC_A5
-  PF12   ------> FSMC_A6
   PD4   ------> FSMC_NOE
   PD5   ------> FSMC_NWE
   PG12   ------> FSMC_NE4
   */
-
-  HAL_GPIO_DeInit(GPIOF, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
-                          |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_12);
 
   HAL_GPIO_DeInit(GPIOD, GPIO_PIN_4|GPIO_PIN_5);
 
