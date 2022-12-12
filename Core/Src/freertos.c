@@ -1,4 +1,4 @@
-﻿/* USER CODE BEGIN Header */
+/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * File Name          : freertos.c
@@ -274,62 +274,61 @@ void ControlTaskRoutine(void *argument)
   /* Infinite loop */
   for(;;)
   {
-
 		if(signal.modified == 1)
-		{	
-				switch(signal.turningControl)
-				{
-					case 0:
-					{
-						HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_1);
-						HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_2);
-						break;
-					}
-					case 1:
-					{
-						HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_1);    //左转
-						break;
-					}
-					case 2:
-					{
-						HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_2);    //右转
-						break;
-					}
-					default:
-					{
-						HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_1);
-						HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_2);
-					}
-				}
-				
-				switch(signal.movingControl)
-				{
+		{
+			switch(signal.turningControl)
+			{
 				case 0:
-					{ 
-						RS485_Send_Data(nor_stop,8);       //正常停止
-						break;
-					}
-					case 1:
-					{
-						RS485_Send_Data(speed_forward[signal.speed],13);  //前进
-
-						break;
-					}
-					case 2:
-					{
-						RS485_Send_Data(speed_reveres[signal.speed],13);  //后退
-						break;
-					}
-					default:
-						RS485_Send_Data(emerg_stop,8);        //紧急停止
+				{
+					HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_1);
+					HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_2);
+					break;
 				}
-				signal.modified = 0;
+				case 1:
+				{
+					HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_1);    //左转
+					break;
+				}
+				case 2:
+				{
+					HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_2);    //右转
+					break;
+				}
+				default:
+				{
+					HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_1);
+					HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_2);
+				}
 			}
+				
+			switch(signal.movingControl)
+			{
+			case 0:
+				{ 
+					RS485_Send_Data(nor_stop,8);       //正常停止
+					break;
+				}
+				case 1:
+				{
+					RS485_Send_Data(speed_forward[signal.speed],13);  //前进
+
+					break;
+				}
+				case 2:
+				{
+					RS485_Send_Data(speed_reveres[signal.speed],13);  //后退
+					break;
+				}
+				default:
+					RS485_Send_Data(emerg_stop,8);        //紧急停止
+			}
+			signal.modified = 0;
+		}
 		
-			if(us_urgent == 1)
-				RS485_Send_Data(emerg_stop,8);
-			if(us_unsafe == 1)
-				RS485_Send_Data(nor_stop,8);
+		if(us_urgent == 1)
+			RS485_Send_Data(emerg_stop,8);
+		if(us_unsafe == 1)
+			RS485_Send_Data(nor_stop,8);
 
     osDelay(1);
 
