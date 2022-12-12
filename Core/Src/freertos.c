@@ -244,7 +244,7 @@ void StartDefaultTask(void *argument)
 void BTTaskRoutine(void *argument)
 {
   /* USER CODE BEGIN BTTaskRoutine */
-	MotorSignal_Init(&signal,50,0,10);
+	MotorSignal_Init(&signal,17,0,1);
 	/* BT recevie start */
 	HAL_UART_Receive_IT(&huart3, (uint8_t *)btBuffer, BT_COMMAND_LENGTH);
   /* Infinite loop */
@@ -312,6 +312,7 @@ void ControlTaskRoutine(void *argument)
 					case 1:
 					{
 						RS485_Send_Data(speed_forward[signal.speed],13);  //Ç°½ø
+
 						break;
 					}
 					case 2:
@@ -322,10 +323,13 @@ void ControlTaskRoutine(void *argument)
 					default:
 						RS485_Send_Data(emerg_stop,8);        //½ô¼±Í£Ö¹
 				}
+				signal.modified = 0;
 			}
-		else
-
-			RS485_Send_Data(emerg_stop,8);     //À¶ÑÀ¶Ï¿ª£¬Ð¡³µÍ£Ö¹
+		
+			if(us_urgent == 1)
+				RS485_Send_Data(emerg_stop,8);
+			if(us_unsafe == 1)
+				RS485_Send_Data(nor_stop,8);
 
     osDelay(1);
 
