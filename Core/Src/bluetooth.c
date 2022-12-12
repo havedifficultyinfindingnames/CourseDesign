@@ -7,46 +7,33 @@ void BT_ProcessMessage(uint8_t *message, MotorSignal_TypeDef *signal)
 		case 'P':
 			signal->movingControl = MOTOR_MOVE_STOP;
 			break;
-		case 'M':
-			if(message[1] == 'F')
+		case 'F':
+			signal->movingControl = MOTOR_MOVE_FORWARD;
+			break;
+		case 'B':
+			signal->movingControl = MOTOR_MOVE_REVERSE;
+			break;
+		case 'L':
+			signal->turningControl = MOTOR_TURNING_LEFT;
+			break;
+		case 'R':
+			signal->turningControl = MOTOR_TURNING_RIGHT;
+			break;
+		case 'N':
+			signal->turningControl = MOTOR_TURNING_NONE;
+			break;
+		case 'U':
+			signal->speed += signal->speedInterval;
+			if(signal->speed > signal->maxSpeed)
 			{
-				signal->movingControl = MOTOR_MOVE_FORWARD;
-			}
-			else if(message[1] == 'R')
-			{
-				signal->movingControl = MOTOR_MOVE_REVERSE;
+				signal->speed = signal->maxSpeed;
 			}
 			break;
-		case 'T':
-			if(message[1] == 'L')
+		case 'D':
+			signal->speed -= signal->speedInterval;
+			if(signal->speed < signal->minSpeed)
 			{
-				signal->turningControl = MOTOR_TURNING_LEFT;
-			}
-			else if(message[1] == 'R')
-			{
-				signal->turningControl = MOTOR_TURNING_RIGHT;
-			}
-			else if(message[1] == 'N')
-			{
-				signal->turningControl = MOTOR_TURNING_NONE;
-			}
-			break;
-		case 'S':
-			if(message[1] == 'U')
-			{
-				signal->speed += signal->speedInterval;
-				if(signal->speed > signal->maxSpeed)
-				{
-					signal->speed = signal->maxSpeed;
-				}
-			}
-			else if(message[1] == 'D')
-			{
-				signal->speed -= signal->speedInterval;
-				if(signal->speed < signal->minSpeed)
-				{
-					signal->speed = signal->minSpeed;
-				}
+				signal->speed = signal->minSpeed;
 			}
 			break;
 		default:

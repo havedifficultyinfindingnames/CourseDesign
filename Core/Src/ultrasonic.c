@@ -30,6 +30,7 @@ HAL_StatusTypeDef USGROUP_Init(USGROUP_HandleTypeDef *husg, TIM_HandleTypeDef *h
 	{
 		return HAL_ERROR;
 	}
+	husg->htim = htim;
 	for(int i = 0; i < 4; ++i)
 	{
 		US_HandleTypeDef hus = {0};

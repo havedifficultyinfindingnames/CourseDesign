@@ -39,10 +39,10 @@ typedef struct
 /* The directions ultrasonic modules faced */
 typedef enum 
 {
-	US_DIR_FORWARD = 0,
-	US_DIR_BACK = 1,
-	US_DIR_LEFT = 2,
-	US_DIR_RIGHT = 3
+	US_DIR_FORWARD_LEFT = 0,
+	US_DIR_FORWARD_RIGHT = 1,
+	US_DIR_BACK_LEFT = 2,
+	US_DIR_BACK_RIGHT = 3
 } US_DIRECTION;
 
 /**
