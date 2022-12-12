@@ -32,6 +32,8 @@ void LCD_set_register(uint16_t value) {
 	memcpy
 #endif
 		((void*)LCD_REG_ADDR, &value, sizeof(uint16_t));
+	__ASM volatile ("nop"); // 2 redundent instructions for delay
+	__ASM volatile ("nop");
 }
 void LCD_set_ram(uint16_t value) {
 #ifdef __has_builtin
@@ -44,6 +46,8 @@ void LCD_set_ram(uint16_t value) {
 	memcpy
 #endif
 		((void*)LCD_RAM_ADDR, &value, sizeof(uint16_t));
+	__ASM volatile ("nop");
+	__ASM volatile ("nop");
 }
 uint16_t LCD_read_register(void) {
 	uint16_t retval;
@@ -137,7 +141,7 @@ void LCD_init(void) {
 	TFTSRAM_Handler.Init.WriteBurst = FSMC_WRITE_BURST_DISABLE;
 	TFTSRAM_Handler.Init.ContinuousClock = FSMC_CONTINUOUS_CLOCK_SYNC_ASYNC;
 
-	FSMC_ReadTimingStruct.AddressSetupTime = 0x0f;
+	FSMC_ReadTimingStruct.AddressSetupTime = 15;
 	FSMC_ReadTimingStruct.AddressHoldTime = 0;
 	FSMC_ReadTimingStruct.DataSetupTime = 60;
 	FSMC_ReadTimingStruct.AccessMode = FSMC_ACCESS_MODE_A;
@@ -684,4 +688,59 @@ void LCD_display_char(uint16_t x, uint16_t y, uint8_t character, font_size_t fon
 			}
 		}
 	}
+}
+void LCD_ShowChar(uint16_t x,uint16_t y,uint8_t num,uint8_t size,uint8_t mode)
+{  							  
+    uint8_t temp, t1, t;
+	uint16_t y0 = y;
+	uint8_t csize = (size / 8 + ((size % 8) ? 1 : 0)) * (size / 2); //得到字体一个字符对应点阵集所占的字节数	
+ 	num = num - ' '; //得到偏移后的值
+	for (t = 0; t < csize; t++) {   
+		if (size == 12) temp = asc2_1206[num][t];      // 调用1206字体
+		else if (size == 16) temp = asc2_1608[num][t]; // 调用1608字体
+		else if (size == 24) temp = asc2_2412[num][t]; // 调用2412字体
+		else if (size == 32) temp = asc2_3216[num][t]; // 调用3216字体
+		else return;                                   // 没有的字库
+		for(t1=0;t1<8;t1++) {			    
+			if(temp&0x80) LCD_draw_point(x, y, 0x0000);
+			else if(mode==0) LCD_draw_point(x, y, 0xffff);
+			temp <<= 1;
+			y++;
+			if(y >= 800) return; // 超区域了
+			if((y - y0) == size) {
+				y = y0;
+				x++;
+				if(x >= 480) return; // 超区域了
+				break;
+			}
+		}
+	}
+}
+void LCD_ShowString(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t size, uint8_t *p)
+{
+    uint8_t x0 = x;
+    width += x;
+    height += y;
+    while ((*p <= '~') && (*p >= ' ')) { // 判断非法字符
+        if (x >= width)
+        {
+            x = x0;
+            y += size;
+        }
+        if (y >= height) break; // 超区域了
+        LCD_ShowChar(x, y, *p, size, 0);
+        x += size / 2;
+        p++;
+    }  
+}
+#include <stdio.h>
+#include <stdarg.h>
+__attribute__((format(printf, 6, 7)))
+void LCD_PrintString(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t size, char const* format, ...) {
+	va_list ptr;
+	va_start(ptr, format);
+	char buffer[100];
+	sprintf(buffer, format, ptr);
+	LCD_ShowString(x, y, width, height, size, (uint8_t*)buffer);
+	va_end(ptr);
 }

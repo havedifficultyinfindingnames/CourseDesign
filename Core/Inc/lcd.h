@@ -61,6 +61,10 @@ void LCD_clear(uint16_t color);
 
 void LCD_draw_point(uint16_t x, uint16_t y, uint16_t color);
 void LCD_display_char(uint16_t x, uint16_t y, uint8_t character, font_size_t font_size, bool transparent);
+void LCD_ShowChar(uint16_t x,uint16_t y,uint8_t num,uint8_t size,uint8_t mode);
+void LCD_ShowString(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t size, uint8_t *p);
+void LCD_PrintString(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t size, char const* format, ...)
+__attribute__((format(printf, 6, 7)));
 
 #ifdef __cplusplus
 }
