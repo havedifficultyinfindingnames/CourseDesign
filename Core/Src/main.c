@@ -79,8 +79,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  LCD_init();
-  LCD_clear(COLOR_RED);
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -99,7 +98,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
-
+  LCD_init();
   /* USER CODE END 2 */
 
   /* Init scheduler */
