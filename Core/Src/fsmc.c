@@ -122,7 +122,7 @@ static void HAL_FSMC_MspInit(void){
   /* USER CODE END FSMC_MspInit 1 */
 }
 
-void HAL_SRAM_MspInit(SRAM_HandleTypeDef* sramHandle){
+__weak void HAL_SRAM_MspInit(SRAM_HandleTypeDef* sramHandle){
   /* USER CODE BEGIN SRAM_MspInit 0 */
 
   /* USER CODE END SRAM_MspInit 0 */
