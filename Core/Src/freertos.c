@@ -430,12 +430,9 @@ void LCDTaskRountine(void *argument)
 {
   /* USER CODE BEGIN LCDTaskRountine */
   /* Infinite loop */
-  //static uint16_t cur_bg_color = 0;
   for(;;)
-  {
-		
-    //LCD_display_char(20, 20, '0', FONT_VERY_LARGE, false);
-    //LCD_clear(++cur_bg_color);
+  {		
+    LCD_PrintString(0, 40, 300, 40, 32, "Current Speed: %d rpm", (signal.speed + 3) * 10);
     osDelay(1);
   }
   /* USER CODE END LCDTaskRountine */

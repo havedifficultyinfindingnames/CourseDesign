@@ -587,7 +587,6 @@ void LCD_init(void) {
 	FSMC_Bank1E->BWTR[6] |= 0x0203u;
 
 	LCD_settings.direction = true;
-
 	LCD_display_dir(false);
 
 	// open PB15, the background light
@@ -690,27 +689,27 @@ void LCD_display_char(uint16_t x, uint16_t y, uint8_t character, font_size_t fon
 	}
 }
 void LCD_ShowChar(uint16_t x,uint16_t y,uint8_t num,uint8_t size,uint8_t mode)
-{  							  
-    uint8_t temp, t1, t;
+{
+	uint8_t temp, t1, t;
 	uint16_t y0 = y;
-	uint8_t csize = (size / 8 + ((size % 8) ? 1 : 0)) * (size / 2); //得到字体一个字符对应点阵集所占的字节数	
- 	num = num - ' '; //得到偏移后的值
-	for (t = 0; t < csize; t++) {   
+	uint8_t csize = (size / 8 + ((size % 8) ? 1 : 0)) * (size / 2); // 得到字体一个字符对应点阵集所占的字节数
+	num = num - ' '; // 得到偏移后的值
+	for (t = 0; t < csize; t++) {
 		if (size == 12) temp = asc2_1206[num][t];      // 调用1206字体
 		else if (size == 16) temp = asc2_1608[num][t]; // 调用1608字体
 		else if (size == 24) temp = asc2_2412[num][t]; // 调用2412字体
 		else if (size == 32) temp = asc2_3216[num][t]; // 调用3216字体
 		else return;                                   // 没有的字库
-		for(t1=0;t1<8;t1++) {			    
-			if(temp&0x80) LCD_draw_point(x, y, 0x0000);
-			else if(mode==0) LCD_draw_point(x, y, 0xffff);
+		for (t1 = 0; t1 < 8; t1++) {
+			if (temp & 0x80) LCD_draw_point(x, y, 0x0000);
+			else if (mode == 0) LCD_draw_point(x, y, 0xffff);
 			temp <<= 1;
 			y++;
-			if(y >= 800) return; // 超区域了
-			if((y - y0) == size) {
+			if (y >= 800) return; // 超区域了
+			if ((y - y0) == size) {
 				y = y0;
 				x++;
-				if(x >= 480) return; // 超区域了
+				if (x >= 480) return; // 超区域了
 				break;
 			}
 		}
@@ -722,8 +721,7 @@ void LCD_ShowString(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uin
     width += x;
     height += y;
     while ((*p <= '~') && (*p >= ' ')) { // 判断非法字符
-        if (x >= width)
-        {
+        if (x >= width) {
             x = x0;
             y += size;
         }
