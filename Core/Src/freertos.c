@@ -372,30 +372,31 @@ void USTaskRoutine(void *argument)
 		}
 		else
 		{
-			//dir1 = US_DIR_FORWARD_LEFT;
-			//dir2 = US_DIR_FORWARD_RIGHT;
 			us_unsafe = 0;
 			us_urgent = 0;
 			osDelay(1);
 			continue;
 		}
-		dis1 = US_GetDistance(&husGroup, dir1);
-		dis2 = US_GetDistance(&husGroup, dir2);
-		if((dis1 <= unsafeDistance || dis2 <= unsafeDistance) && us_unsafe == 0)
+		if(signal.movingControl != MOTOR_MOVE_STOP)
 		{
-			us_unsafe = 1;
-		}
-		else if (us_unsafe == 1 && dis1 > unsafeDistance + 50 && dis2 > unsafeDistance + 50)
-		{
-			us_unsafe = 0;
-		}
-		if((dis1 <= urgentDistance || dis2 <= urgentDistance) && us_urgent == 0)
-		{
-			us_urgent = 1;
-		}
-		else if (us_urgent == 1 && dis1 > urgentDistance + 25 && dis2 > urgentDistance + 25)
-		{
-			us_urgent = 0;
+			dis1 = US_GetDistance(&husGroup, dir1);
+			dis2 = US_GetDistance(&husGroup, dir2);
+			if((dis1 <= unsafeDistance || dis2 <= unsafeDistance) && us_unsafe == 0)
+			{
+				us_unsafe = 1;
+			}
+			else if (us_unsafe == 1 && dis1 > unsafeDistance + 50 && dis2 > unsafeDistance + 50)
+			{
+				us_unsafe = 0;
+			}
+			if((dis1 <= urgentDistance || dis2 <= urgentDistance) && us_urgent == 0)
+			{
+				us_urgent = 1;
+			}
+			else if (us_urgent == 1 && dis1 > urgentDistance + 25 && dis2 > urgentDistance + 25)
+			{
+				us_urgent = 0;
+			}
 		}
 		if(us_unsafe == 1)
 		{
