@@ -372,12 +372,12 @@ void USTaskRoutine(void *argument)
 		}
 		else
 		{
-			dir1 = US_DIR_FORWARD_LEFT;
-			dir2 = US_DIR_FORWARD_RIGHT;
-			//us_unsafe = 0;
-			//us_urgent = 0;
-			//osDelay(1);
-			//continue;
+			//dir1 = US_DIR_FORWARD_LEFT;
+			//dir2 = US_DIR_FORWARD_RIGHT;
+			us_unsafe = 0;
+			us_urgent = 0;
+			osDelay(1);
+			continue;
 		}
 		dis1 = US_GetDistance(&husGroup, dir1);
 		dis2 = US_GetDistance(&husGroup, dir2);
