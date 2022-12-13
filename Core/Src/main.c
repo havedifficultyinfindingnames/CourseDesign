@@ -98,7 +98,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
-  LCD_init();
+  LCD_Init();
   /* USER CODE END 2 */
 
   /* Init scheduler */
