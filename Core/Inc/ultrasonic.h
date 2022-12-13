@@ -33,7 +33,8 @@ typedef struct
 {
 	US_TypeDef Instance;
 	TIM_HandleTypeDef *htim;
-	uint32_t Channel;
+	uint32_t matchChannel;
+	uint32_t readChannel;
 } US_HandleTypeDef;
 
 /* The directions ultrasonic modules faced */
@@ -54,7 +55,7 @@ typedef struct
 	TIM_HandleTypeDef *htim;
 } USGROUP_HandleTypeDef;
 
-HAL_StatusTypeDef US_Init(US_HandleTypeDef *hus, TIM_HandleTypeDef *htim, uint32_t channel);
+HAL_StatusTypeDef US_Init(US_HandleTypeDef *hus, TIM_HandleTypeDef *htim, uint32_t matchChannel, uint32_t readChannel);
 
 HAL_StatusTypeDef USGROUP_Init(USGROUP_HandleTypeDef *husg, TIM_HandleTypeDef *htim);
 

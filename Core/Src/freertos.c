@@ -349,6 +349,8 @@ void USTaskRoutine(void *argument)
 	USGROUP_Init(&husGroup, &htim8);
 	US_DIRECTION dir1 = US_DIR_FORWARD_LEFT;
 	US_DIRECTION dir2 = US_DIR_FORWARD_RIGHT;
+	volatile uint16_t dis1 = 4000;
+	volatile uint16_t dis2 = 4000;
 	HAL_TIM_IC_Start_IT(&htim8,TIM_CHANNEL_1);
 	HAL_TIM_IC_Start_IT(&htim8,TIM_CHANNEL_2);
 	HAL_TIM_IC_Start_IT(&htim8,TIM_CHANNEL_3);
@@ -377,23 +379,39 @@ void USTaskRoutine(void *argument)
 			//osDelay(1);
 			//continue;
 		}
-		uint16_t dis1 = US_GetDistance(&husGroup, dir1);
-		uint16_t dis2 = US_GetDistance(&husGroup, dir2);
-		if(dis1 <= unsafeDistance || dis2 <= unsafeDistance)
+		dis1 = US_GetDistance(&husGroup, dir1);
+		dis2 = US_GetDistance(&husGroup, dir2);
+		if((dis1 <= unsafeDistance || dis2 <= unsafeDistance) && us_unsafe == 0)
 		{
 			us_unsafe = 1;
 		}
-		else
+		else if (us_unsafe == 1 && dis1 > unsafeDistance + 50 && dis2 > unsafeDistance + 50)
 		{
 			us_unsafe = 0;
 		}
-		if(dis1 <= urgentDistance || dis2 <= urgentDistance)
+		if((dis1 <= urgentDistance || dis2 <= urgentDistance) && us_urgent == 0)
 		{
 			us_urgent = 1;
 		}
-		else
+		else if (us_urgent == 1 && dis1 > urgentDistance + 25 && dis2 > urgentDistance + 25)
 		{
 			us_urgent = 0;
+		}
+		if(us_unsafe == 1)
+		{
+			HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
+		}
+		else
+		{
+			HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
+		}
+		if(us_urgent == 1)
+		{
+			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
+		}
+		else
+		{
+			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
 		}
     osDelay(1);
   }
@@ -414,22 +432,7 @@ void LCDTaskRountine(void *argument)
   //static uint16_t cur_bg_color = 0;
   for(;;)
   {
-		if(us_unsafe == 1)
-		{
-			HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
-		}
-		else
-		{
-			HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
-		}
-		if(us_urgent == 1)
-		{
-			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
-		}
-		else
-		{
-			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
-		}
+		
     //LCD_display_char(20, 20, '0', FONT_VERY_LARGE, false);
     //LCD_clear(++cur_bg_color);
     osDelay(1);

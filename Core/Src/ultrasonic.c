@@ -7,7 +7,7 @@
   */
 #include "ultrasonic.h"
 
-HAL_StatusTypeDef US_Init(US_HandleTypeDef *hus, TIM_HandleTypeDef *htim, uint32_t channel)
+HAL_StatusTypeDef US_Init(US_HandleTypeDef *hus, TIM_HandleTypeDef *htim, uint32_t matchChannel, uint32_t readChannel)
 {
 	if(NULL == hus)
 	{
@@ -20,7 +20,8 @@ HAL_StatusTypeDef US_Init(US_HandleTypeDef *hus, TIM_HandleTypeDef *htim, uint32
 	us.distance = 4000;
 	hus->Instance = us;
 	hus->htim = htim;
-	hus->Channel = channel;
+	hus->matchChannel = matchChannel;
+	hus->readChannel = readChannel;
 	return HAL_OK;
 }
 
@@ -37,10 +38,10 @@ HAL_StatusTypeDef USGROUP_Init(USGROUP_HandleTypeDef *husg, TIM_HandleTypeDef *h
 		husg->us[i] = hus;
 	}
 	if(
-		US_Init(&(husg->us[0]), htim, TIM_CHANNEL_1) == HAL_OK &&
-		US_Init(&(husg->us[1]), htim, TIM_CHANNEL_2) == HAL_OK &&
-		US_Init(&(husg->us[2]), htim, TIM_CHANNEL_3) == HAL_OK &&
-		US_Init(&(husg->us[3]), htim, TIM_CHANNEL_4) == HAL_OK)
+		US_Init(&(husg->us[0]), htim, HAL_TIM_ACTIVE_CHANNEL_1, TIM_CHANNEL_1) == HAL_OK &&
+		US_Init(&(husg->us[1]), htim, HAL_TIM_ACTIVE_CHANNEL_2, TIM_CHANNEL_2) == HAL_OK &&
+		US_Init(&(husg->us[2]), htim, HAL_TIM_ACTIVE_CHANNEL_3, TIM_CHANNEL_3) == HAL_OK &&
+		US_Init(&(husg->us[3]), htim, HAL_TIM_ACTIVE_CHANNEL_4, TIM_CHANNEL_4) == HAL_OK)
 	{
 		return HAL_OK;
 	}
@@ -52,17 +53,17 @@ HAL_StatusTypeDef USGROUP_Init(USGROUP_HandleTypeDef *husg, TIM_HandleTypeDef *h
 
 void US_ProcessCapture(US_HandleTypeDef *hus, TIM_HandleTypeDef *htim)
 {
-	if(NULL != hus && hus->htim->Instance == htim->Instance && (hus->Channel & htim->Channel) != 0)
+	if(NULL != hus && hus->htim->Instance == htim->Instance && (hus->matchChannel & htim->Channel) != 0)
 	{
-		HAL_TIM_IC_Stop_IT(htim,hus->Channel);
+		HAL_TIM_IC_Stop_IT(htim,hus->readChannel);
 		if(hus->Instance.capIndex == 0)
 		{
-			hus->Instance.capValue1 = HAL_TIM_ReadCapturedValue(htim,hus->Channel);
+			hus->Instance.capValue1 = HAL_TIM_ReadCapturedValue(htim,hus->readChannel);
 			hus->Instance.capIndex = 1;
 		}
 		else
 		{
-			hus->Instance.capValue2 = HAL_TIM_ReadCapturedValue(htim,hus->Channel);
+			hus->Instance.capValue2 = HAL_TIM_ReadCapturedValue(htim,hus->readChannel);
 			uint16_t diff;
 			if(hus->Instance.capValue2 >= hus->Instance.capValue1)
 			{
@@ -75,7 +76,7 @@ void US_ProcessCapture(US_HandleTypeDef *hus, TIM_HandleTypeDef *htim)
 			hus->Instance.distance = 170 * diff / 1000;
 			hus->Instance.capIndex = 0;
 		}
-		HAL_TIM_IC_Start_IT(htim,hus->Channel);
+		HAL_TIM_IC_Start_IT(htim,hus->readChannel);
 	}
 }
 
