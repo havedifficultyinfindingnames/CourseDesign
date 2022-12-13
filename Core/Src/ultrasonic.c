@@ -64,7 +64,7 @@ void US_ProcessCapture(US_HandleTypeDef *hus, TIM_HandleTypeDef *htim)
 		else
 		{
 			hus->Instance.capValue2 = HAL_TIM_ReadCapturedValue(htim,hus->readChannel);
-			uint16_t diff;
+			uint32_t diff;
 			if(hus->Instance.capValue2 >= hus->Instance.capValue1)
 			{
 				diff = hus->Instance.capValue2 - hus->Instance.capValue1;

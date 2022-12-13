@@ -23,7 +23,7 @@ typedef  struct
 	uint8_t capIndex;
 	uint16_t capValue1;
 	uint16_t capValue2;
-	uint16_t distance;
+	uint32_t distance;
 } US_TypeDef;
 
 /**
