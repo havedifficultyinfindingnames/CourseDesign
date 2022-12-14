@@ -436,11 +436,13 @@ void LCDTaskRountine(void *argument)
   /* Infinite loop */
   for(;;)
   {		
-    LCD_PrintString(0, 40, 300, 40, 32, "Current Speed: %d rpm", (signal.speed + 3) * 10);
-	if (us_unsafe)
-		LCD_Clear(YELLOW);
 	if (us_urgent)
-		LCD_Clear(RED);
+	  LCD_Clear(RED);
+	else if (us_unsafe)
+	  LCD_Clear(YELLOW);
+	else
+	  LCD_Clear(WHITE);
+    LCD_PrintString(0, 40, 480, 40, 32, "Current Speed: %d rpm", (signal.speed + 3) * 10);
     osDelay(1);
   }
   /* USER CODE END LCDTaskRountine */
