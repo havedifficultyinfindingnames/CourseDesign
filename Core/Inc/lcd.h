@@ -17,8 +17,12 @@ typedef struct {
 } LCD_settings_t;
 extern LCD_settings_t LCD_settings;
 
+/**
+ * @brief Scanning direction.
+ * @warning Don't change the number as it's the exact command to the screen.
+ */
 typedef enum {
-    L2R_U2D = 0,
+    L2R_U2D = 0, // left-to-right, upward-to-downward
     L2R_D2U = 4,
     R2L_U2D = 2,
     R2L_D2U = 6,
@@ -28,6 +32,7 @@ typedef enum {
     D2U_R2L = 7,
 } direction_t;
 
+// color constants
 enum {
     COLOR_WHITE         = 0xffff,
     COLOR_BLACK         = 0x0000,
@@ -41,6 +46,7 @@ enum {
     COLOR_LIGHTGREEN    = 0x841f,
 };
 
+// font size, there're only 4 alternatives in the font library
 typedef enum {
     FONT_SMALL,
     FONT_MEDIUM,
@@ -48,24 +54,88 @@ typedef enum {
     FONT_VERY_LARGE,
 } font_size_t;
 
-void LCD_set_register(uint16_t value);
-void LCD_set_ram(uint16_t value);
-uint16_t LCD_read_register(void);
-uint16_t LCD_read_ram(void);
-void LCD_write(uint16_t reg, uint16_t value);
-uint16_t LCD_read(uint16_t reg);
-
+/**
+ * @brief Init the LCD screen
+ * @details Call it manually in main function after MX_GPIO_Init and MX_FSMC_Init
+ *          because it doesn't work well with CubeMX. 
+ *          Pins to use: PB15, PD0, 1, 4, 5, 8, 9, 10, 14, 15,
+ *                       PE7, 8, 9, 10, 11, 12, 13, 14, 15, PF12, PG12
+ *          Works to do: 1. Init the pins
+ *                       2. Init FSMC
+ *                       3. Send query command and assert the screen type is 5510
+ *                       4. Send init commands to screen
+ *                       5. Set FSMC to higher speed
+ *                       6. Init global variable LCD_settings, and set the scan direction to default
+ *                       7. Lighten the background light
+ */
 void LCD_init(void);
 
+/**
+ * @brief Change the display direction and clear the screen if it does change. 
+ * @warning Never use it to fresh. 
+ * @param direction : the new direction, false for vertical, true for horizonal
+ */
 void LCD_display_dir(bool direction);
+/**
+ * @brief Set current cursor position. 
+ * @param x
+ * @param y
+ */
 void LCD_set_cursor(uint16_t x, uint16_t y);
+/**
+ * @brief Clear the screen with the given color. 
+ *        Most common usage: LCD_clear(COLOR_WHITE);
+ * @param color : the color to fill the screen
+ */
 void LCD_clear(uint16_t color);
 
+/**
+ * @brief Draw a point at the given position with the given color.
+ * @param x
+ * @param y
+ * @param color
+ */
 void LCD_draw_point(uint16_t x, uint16_t y, uint16_t color);
+/**
+ * @brief Display a single char at the given position.
+ * @param x : position x
+ * @param y : position y
+ * @param character : the char to be displayed
+ * @param font_size : the font size
+ * @param transparent : whether the blank space of a char is white or transparent
+ * @warning Bug exists.
+ */
 void LCD_display_char(uint16_t x, uint16_t y, uint8_t character, font_size_t font_size, bool transparent);
+/**
+ * @brief Copied from other's code. It's correct one, but calling arguments are different.
+ * @param x : position x
+ * @param y : position y
+ * @param num : the char to be displayed
+ * @param size : one of the font size, others will lead to undefined behaviour
+ * @param mode : transparent mode
+ * @deprecated please fix the method above
+ */
 void LCD_ShowChar(uint16_t x,uint16_t y,uint8_t num,uint8_t size,uint8_t mode);
-void LCD_ShowString(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t size, uint8_t *p);
-void LCD_PrintString(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t size, char const* format, ...)
+/**
+ * @brief Print the given string in the given area.
+ * @details Imagin that there is a rectangular textbox,
+ *          the first 4 params define the box size and position.
+ *          Then specify the font size and input the string.
+ * @warning not tested
+ * @param x : starting position x
+ * @param y : starting position y
+ * @param width : the specific area width
+ * @param height : the specific area height
+ * @param font_size : font size
+ * @param p : a pointer to string. may need reinterpret cast from char*
+ * @return int : the number of letters printed
+ */
+int LCD_print_string(uint16_t x, uint16_t y, uint16_t width, uint16_t height, font_size_t font_size, uint8_t* p);
+/**
+ * @brief Print the string using printf
+ * @warning not tested
+ */
+int LCD_print_format_string(uint16_t x, uint16_t y, uint16_t width, uint16_t height, font_size_t font_size, char const* format, ...)
 __attribute__((format(printf, 6, 7)));
 
 #ifdef __cplusplus
